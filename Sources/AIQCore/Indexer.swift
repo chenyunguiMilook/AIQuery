@@ -26,10 +26,9 @@ public final class AIQIndexer {
         p.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         p.arguments = [
             "swift", "build",
-            "-Xfrontend", "-emit-symbol-graph",
-            "-Xfrontend", "-emit-symbol-graph-dir",
-            "-Xfrontend", symbolGraphDir,
-            "-Xfrontend", "-skip-function-bodies"
+            "-Xswiftc", "-Xfrontend", "-Xswiftc", "-emit-symbol-graph",
+            "-Xswiftc", "-Xfrontend", "-Xswiftc", "-emit-symbol-graph-dir",
+            "-Xswiftc", "-Xfrontend", "-Xswiftc", symbolGraphDir
         ]
 
         let pipe = Pipe()
