@@ -49,10 +49,13 @@ struct TypeQuery: ParsableCommand {
     @Option(name: .long, help: "Path to SQLite db (default: ./.aiq/index.sqlite)")
     var db: String?
 
+    @Option(name: .long, help: "Include top N method declarations as members (default: 5; 0 disables)")
+    var membersLimit: Int = 5
+
     func run() throws {
         let dbPath = try resolveDBPath(db)
         let q = AIQQuerier()
-        let rows = try q.queryType(name: name, options: QueryOptions(dbPath: dbPath))
+        let rows = try q.queryType(name: name, options: QueryOptions(dbPath: dbPath), membersLimit: max(0, membersLimit))
         let out = try AIQJSONL.encodeLines(rows)
         if !out.isEmpty { print(out) }
     }

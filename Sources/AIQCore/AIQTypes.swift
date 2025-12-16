@@ -1,6 +1,7 @@
 import Foundation
 
 public struct AIQSymbolRow: Codable, Sendable {
+    public var usr: String?           // internal use; not encoded
     public var kind: String            // "type" | "method"
     public var name: String
     public var typeKind: String        // e.g. "struct" | "class" | "func" ...
@@ -8,8 +9,14 @@ public struct AIQSymbolRow: Codable, Sendable {
     public var line: Int
     public var declaration: String
     public var doc: String
+    public var members: [String]?
 
-    public init(kind: String, name: String, typeKind: String, file: String, line: Int, declaration: String, doc: String) {
+    enum CodingKeys: String, CodingKey {
+        case kind, name, typeKind, file, line, declaration, doc, members
+    }
+
+    public init(usr: String? = nil, kind: String, name: String, typeKind: String, file: String, line: Int, declaration: String, doc: String, members: [String]? = nil) {
+        self.usr = usr
         self.kind = kind
         self.name = name
         self.typeKind = typeKind
@@ -17,6 +24,7 @@ public struct AIQSymbolRow: Codable, Sendable {
         self.line = line
         self.declaration = declaration
         self.doc = doc
+        self.members = members
     }
 }
 
