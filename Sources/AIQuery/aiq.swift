@@ -84,16 +84,72 @@ private func resolveDBPath(_ override: String?) throws -> String {
         return URL(fileURLWithPath: override).standardizedFileURL.path
     }
 
-    let cwd = FileManager.default.currentDirectoryPath
-    let aiCandidate = (cwd as NSString).appendingPathComponent(".ai/index.sqlite")
-    if FileManager.default.fileExists(atPath: aiCandidate) {
-        return aiCandidate
+    let env = ProcessInfo.processInfo.environment
+    if let dbPath = env["AIQ_DB_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines), !dbPath.isEmpty {
+        let expanded = (dbPath as NSString).expandingTildeInPath
+        let p = URL(fileURLWithPath: expanded).standardizedFileURL.path
+        if FileManager.default.fileExists(atPath: p) {
+            return p
+        }
     }
 
-    let aiqCandidate = (cwd as NSString).appendingPathComponent(".aiq/index.sqlite")
-    if FileManager.default.fileExists(atPath: aiqCandidate) {
-        return aiqCandidate
+    if let root = env["AIQ_PROJECT_ROOT"]?.trimmingCharacters(in: .whitespacesAndNewlines), !root.isEmpty {
+        let expandedRoot = (root as NSString).expandingTildeInPath
+        if let p = firstExistingProjectDB(under: expandedRoot) {
+            return p
+        }
     }
 
-    throw AIQError.message("No db found. Pass --db <path> or run from project root with .ai/index.sqlite (or .aiq/index.sqlite)")
+    if let p = firstExistingDBWalkingUp(from: FileManager.default.currentDirectoryPath) {
+        return p
+    }
+
+    if let p = firstExistingHomeDB() {
+        return p
+    }
+
+    throw AIQError.message(
+        "No db found. Pass --db <path>, set AIQ_DB_PATH/AIQ_PROJECT_ROOT, or run from project root with .ai/index.sqlite (or .aiq/index.sqlite). " +
+        "Fallback locations checked: <cwd and parents>, ~/.ai/index.sqlite, ~/.aiq/index.sqlite"
+    )
+}
+
+private func firstExistingProjectDB(under root: String) -> String? {
+    let fm = FileManager.default
+    let ai = (root as NSString).appendingPathComponent(".ai/index.sqlite")
+    if fm.fileExists(atPath: ai) { return ai }
+    let aiq = (root as NSString).appendingPathComponent(".aiq/index.sqlite")
+    if fm.fileExists(atPath: aiq) { return aiq }
+    return nil
+}
+
+private func firstExistingDBWalkingUp(from startDir: String) -> String? {
+    var dir = URL(fileURLWithPath: startDir).standardizedFileURL.path
+    let fm = FileManager.default
+
+    for _ in 0..<64 {
+        let ai = (dir as NSString).appendingPathComponent(".ai/index.sqlite")
+        if fm.fileExists(atPath: ai) { return ai }
+
+        let aiq = (dir as NSString).appendingPathComponent(".aiq/index.sqlite")
+        if fm.fileExists(atPath: aiq) { return aiq }
+
+        let parent = (dir as NSString).deletingLastPathComponent
+        if parent.isEmpty || parent == dir { break }
+        dir = parent
+    }
+    return nil
+}
+
+private func firstExistingHomeDB() -> String? {
+    let home = NSHomeDirectory()
+    let fm = FileManager.default
+
+    let homeAi = (home as NSString).appendingPathComponent(".ai/index.sqlite")
+    if fm.fileExists(atPath: homeAi) { return homeAi }
+
+    let homeAiq = (home as NSString).appendingPathComponent(".aiq/index.sqlite")
+    if fm.fileExists(atPath: homeAiq) { return homeAiq }
+
+    return nil
 }

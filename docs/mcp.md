@@ -19,6 +19,17 @@
 
 当该变量存在时，`aiq-mcp` 会强制让 `aiq` 子进程在该目录下运行（优先级高于当前工作目录）。
 
+### Copilot / VS Code 场景的兜底（无 cwd / 无 env）
+
+有些 MCP Host（例如某些 Copilot 集成）可能不会把“项目目录”传给 MCP 进程，也不支持配置 `cwd`/环境变量。
+
+为提高可用性：
+
+- `aiq` 在当前目录/父目录找不到索引库时，会继续尝试：`~/.ai/index.sqlite`（其次 `~/.aiq/index.sqlite`）。
+- SwiftLens 每次索引成功后，会把当前项目的 DB（含 `-wal`/`-shm`）同步到 `~/.ai/index.sqlite`。
+
+因此：只要你用 SwiftLens 对目标项目成功索引过一次，即使 MCP Host 的工作目录不正确，也能通过默认库查询到结果。
+
 ## Tools
 
 ### 1) `query_type`
