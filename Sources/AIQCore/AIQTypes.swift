@@ -67,6 +67,32 @@ public enum AIQPaths {
         return uri
     }
 
+    /// Best-effort filter for SDK/toolchain/system sources emitted by Xcode.
+    /// Keeps project + dependency sources (e.g. DerivedData/SourcePackages) by default.
+    public static func isSystemSourcePath(_ absolutePath: String) -> Bool {
+        let path = URL(fileURLWithPath: absolutePath).standardizedFileURL.path
+
+        // Common system / SDK / toolchain locations.
+        let prefixes = [
+            "/Applications/Xcode.app/Contents/Developer/",
+            "/Library/Developer/CommandLineTools/",
+            "/System/Library/",
+            "/usr/lib/",
+            "/usr/include/"
+        ]
+
+        if prefixes.contains(where: { path.hasPrefix($0) }) {
+            return true
+        }
+
+        // Some SDK paths can be nested inside the Xcode bundle; keep a few explicit checks.
+        if path.contains("/Platforms/") && path.contains("/SDKs/") {
+            return true
+        }
+
+        return false
+    }
+
     public static func relativize(path: String, to base: String) -> String {
         let baseURL = URL(fileURLWithPath: base).standardizedFileURL
         let fileURL = URL(fileURLWithPath: path).standardizedFileURL

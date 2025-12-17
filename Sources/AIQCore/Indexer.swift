@@ -5,10 +5,25 @@ public struct IndexOptions: Sendable {
     public var dbPath: String
     public var symbolGraphDir: String
 
-    public init(packagePath: String, dbPath: String, symbolGraphDir: String) {
+    // Filtering
+    public var excludeSystemSymbols: Bool
+    public var extraExcludedPathPrefixes: [String]
+    public var requireLocation: Bool
+
+    public init(
+        packagePath: String,
+        dbPath: String,
+        symbolGraphDir: String,
+        excludeSystemSymbols: Bool = false,
+        extraExcludedPathPrefixes: [String] = [],
+        requireLocation: Bool = false
+    ) {
         self.packagePath = packagePath
         self.dbPath = dbPath
         self.symbolGraphDir = symbolGraphDir
+        self.excludeSystemSymbols = excludeSystemSymbols
+        self.extraExcludedPathPrefixes = extraExcludedPathPrefixes
+        self.requireLocation = requireLocation
     }
 }
 
@@ -71,7 +86,7 @@ public final class AIQIndexer {
                 let graph = try JSONDecoder().decode(SymbolGraphFile.self, from: data)
                 let moduleName = graph.module?.name ?? ""
                 let memberOf = buildMemberOfMap(graph.relationships)
-                try ingest(graph: graph, module: moduleName, memberOf: memberOf, packagePath: options.packagePath, db: db)
+                try ingest(graph: graph, module: moduleName, memberOf: memberOf, options: options, db: db)
             }
         }
 
@@ -119,7 +134,7 @@ public final class AIQIndexer {
         return map
     }
 
-    private func ingest(graph: SymbolGraphFile, module: String, memberOf: [String: String], packagePath: String, db: SQLiteDB) throws {
+    private func ingest(graph: SymbolGraphFile, module: String, memberOf: [String: String], options: IndexOptions, db: SQLiteDB) throws {
         let insert = try db.prepare("""
         INSERT OR REPLACE INTO symbols
         (usr, name, kind, type_kind, file, line, declaration, doc, parent_usr, module)
@@ -136,7 +151,23 @@ public final class AIQIndexer {
 
             let rawPath = AIQPaths.normalizeFileURI(s.location?.uri ?? "")
             let abs = rawPath.isEmpty ? "" : rawPath
-            let file = abs.isEmpty ? "" : AIQPaths.relativize(path: abs, to: packagePath)
+            if options.requireLocation && abs.isEmpty {
+                continue
+            }
+
+            if options.excludeSystemSymbols, !abs.isEmpty {
+                if AIQPaths.isSystemSourcePath(abs) {
+                    continue
+                }
+            }
+
+            if !abs.isEmpty, !options.extraExcludedPathPrefixes.isEmpty {
+                if options.extraExcludedPathPrefixes.contains(where: { abs.hasPrefix($0) }) {
+                    continue
+                }
+            }
+
+            let file = abs.isEmpty ? "" : AIQPaths.relativize(path: abs, to: options.packagePath)
             let line = s.location?.position.line ?? 0
             let decl = s.declarationString
             let doc = s.docString
