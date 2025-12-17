@@ -33,7 +33,7 @@ let package = Package(
                 .linkedLibrary("sqlite3")
             ]
         ),
-        .target(
+        .executableTarget(
             name: "AIQMCP",
             dependencies: [
                 .product(name: "MCP", package: "swift-sdk")
