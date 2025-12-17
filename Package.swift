@@ -10,10 +10,12 @@ let package = Package(
     ],
     products: [
         .library(name: "AIQCore", targets: ["AIQCore"]),
-        .executable(name: "aiq", targets: ["AIQuery"])
+        .executable(name: "aiq", targets: ["AIQuery"]),
+        .executable(name: "aiq-mcp", targets: ["AIQMCP"]),
     ],
     dependencies: [
-        .package(url: "git@github.com:apple/swift-argument-parser", from: "1.3.0")
+        .package(url: "git@github.com:apple/swift-argument-parser", from: "1.3.0"),
+        .package(url: "git@github.com:modelcontextprotocol/swift-sdk", from: "0.10.2"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -29,6 +31,12 @@ let package = Package(
             name: "AIQCore",
             linkerSettings: [
                 .linkedLibrary("sqlite3")
+            ]
+        ),
+        .target(
+            name: "AIQMCP",
+            dependencies: [
+                .product(name: "MCP", package: "swift-sdk")
             ]
         ),
         .testTarget(
