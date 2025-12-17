@@ -60,3 +60,17 @@ aiq-mcp
 ```
 
 它会通过 stdin/stdout 等待 MCP JSON-RPC 请求（适合用 MCP client 做集成测试）。
+
+## 本地冒烟测试（推荐）
+
+在你要查询的“项目根目录”（包含 `.ai/index.sqlite`）下执行：
+
+```bash
+cd /Users/chenyungui/Documents/vectorShop/VectorShop
+
+# 先确认 aiq 能查到结果（应输出 JSONL）
+aiq type Bezier3Segment --members-limit 1 | head -n 2
+
+# 再跑 MCP 端到端测试：initialize -> tools/list -> tools/call(query_type)
+python3 /Users/chenyungui/Documents/vectorShop/AIQuery/scripts/mcp_smoke_test.py "$PWD" Bezier3Segment
+```
