@@ -85,10 +85,15 @@ private func resolveDBPath(_ override: String?) throws -> String {
     }
 
     let cwd = FileManager.default.currentDirectoryPath
-    let candidate = (cwd as NSString).appendingPathComponent(".aiq/index.sqlite")
-    if FileManager.default.fileExists(atPath: candidate) {
-        return candidate
+    let aiCandidate = (cwd as NSString).appendingPathComponent(".ai/index.sqlite")
+    if FileManager.default.fileExists(atPath: aiCandidate) {
+        return aiCandidate
     }
 
-    throw AIQError.message("No db found. Pass --db <path> or run from package root with .aiq/index.sqlite")
+    let aiqCandidate = (cwd as NSString).appendingPathComponent(".aiq/index.sqlite")
+    if FileManager.default.fileExists(atPath: aiqCandidate) {
+        return aiqCandidate
+    }
+
+    throw AIQError.message("No db found. Pass --db <path> or run from project root with .ai/index.sqlite (or .aiq/index.sqlite)")
 }

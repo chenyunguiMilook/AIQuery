@@ -10,7 +10,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AIQCore", targets: ["AIQCore"]),
-        .executable(name: "AIQuery", targets: ["AIQuery"])
+        .executable(name: "aiq", targets: ["AIQuery"])
     ],
     dependencies: [
         .package(url: "git@github.com:apple/swift-argument-parser", from: "1.3.0")
