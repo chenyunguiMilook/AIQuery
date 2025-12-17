@@ -150,8 +150,22 @@ private func optionalIntArg(_ args: [String: Value]?, key: String) -> Int? {
 private func runAIQ(args: [String]) throws -> AIQExecResult {
 	let aiqPath = "/usr/local/bin/aiq"
 	let fm = FileManager.default
+	let env = ProcessInfo.processInfo.environment
 
 	let p = Process()
+	if let root = env["AIQ_PROJECT_ROOT"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+		!root.isEmpty
+	{
+		let expanded = (root as NSString).expandingTildeInPath
+		var isDir: ObjCBool = false
+		guard fm.fileExists(atPath: expanded, isDirectory: &isDir), isDir.boolValue else {
+			throw MCPError.invalidRequest(
+				"AIQ_PROJECT_ROOT does not exist or is not a directory: \(expanded)"
+			)
+		}
+		p.currentDirectoryURL = URL(fileURLWithPath: expanded, isDirectory: true)
+	}
+
 	if fm.isExecutableFile(atPath: aiqPath) {
 		p.executableURL = URL(fileURLWithPath: aiqPath)
 		p.arguments = args

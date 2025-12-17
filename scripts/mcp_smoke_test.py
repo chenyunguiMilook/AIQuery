@@ -71,9 +71,13 @@ def main(argv: list[str]) -> int:
         print("aiq-mcp not found on PATH", file=sys.stderr)
         return 2
 
+    child_env = os.environ.copy()
+    child_env["AIQ_PROJECT_ROOT"] = project_root
+
     p = subprocess.Popen(
         [aiq_mcp],
         cwd=project_root,
+        env=child_env,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
