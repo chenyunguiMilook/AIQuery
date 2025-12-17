@@ -28,7 +28,7 @@ struct AIQMCPMain {
 		"properties": [
 			"name": [
 				"type": "string",
-				"description": "Type name (exact match, e.g. EffectTexture)"
+				"description": "Type name (exact match, e.g. Bezier3Segment)"
 			],
 			"membersLimit": [
 				"type": "integer",
