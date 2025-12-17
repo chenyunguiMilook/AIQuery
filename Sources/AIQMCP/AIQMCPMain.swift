@@ -23,6 +23,33 @@ private struct AIQExecResult: Sendable {
 
 @main
 struct AIQMCPMain {
+	static let queryTypeSchema: Value = [
+		"type": "object",
+		"properties": [
+			"name": [
+				"type": "string",
+				"description": "Type name (exact match, e.g. EffectTexture)"
+			],
+			"membersLimit": [
+				"type": "integer",
+				"description": "Include top N method declarations as members (0 disables)",
+				"minimum": 0
+			],
+		],
+		"required": ["name"],
+	]
+
+	static let queryMethodSchema: Value = [
+		"type": "object",
+		"properties": [
+			"name": [
+				"type": "string",
+				"description": "Method name (exact match, e.g. render)"
+			],
+		],
+		"required": ["name"],
+	]
+
 	static func main() async {
 		LoggingSystem.bootstrap { label in
 			var handler = StreamLogHandler.standardError(label: label)
@@ -45,13 +72,13 @@ struct AIQMCPMain {
 				Tool(
 					name: AIQMCPTool.queryType,
 					description: "Query a type by exact name via aiq and return JSON array.",
-					inputSchema: queryTypeSchema,
+					inputSchema: Self.queryTypeSchema,
 					annotations: Tool.Annotations(title: "Query Type", readOnlyHint: true, destructiveHint: false, openWorldHint: false)
 				),
 				Tool(
 					name: AIQMCPTool.queryMethod,
 					description: "Query a method by exact name via aiq and return JSON array.",
-					inputSchema: queryMethodSchema,
+					inputSchema: Self.queryMethodSchema,
 					annotations: Tool.Annotations(title: "Query Method", readOnlyHint: true, destructiveHint: false, openWorldHint: false)
 				),
 			])
@@ -107,33 +134,6 @@ struct AIQMCPMain {
 		}
 	}
 }
-
-private let queryTypeSchema: Value = [
-	"type": "object",
-	"properties": [
-		"name": [
-			"type": "string",
-			"description": "Type name (exact match, e.g. EffectTexture)"
-		],
-		"membersLimit": [
-			"type": "integer",
-			"description": "Include top N method declarations as members (0 disables)",
-			"minimum": 0
-		],
-	],
-	"required": ["name"],
-]
-
-private let queryMethodSchema: Value = [
-	"type": "object",
-	"properties": [
-		"name": [
-			"type": "string",
-			"description": "Method name (exact match, e.g. render)"
-		],
-	],
-	"required": ["name"],
-]
 
 private func requireStringArg(_ args: [String: Value]?, key: String) throws -> String {
 	guard let v = args?[key], let s = v.stringValue, !s.isEmpty else {
