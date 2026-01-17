@@ -37,6 +37,37 @@ public enum AIQXcodebuild {
         )
     }
 
+    public static func buildEmitSymbolGraphCommand(
+        projectOrWorkspacePath: String,
+        scheme: String,
+        destination: String,
+        symbolGraphDir: String
+    ) -> String {
+        let path = URL(fileURLWithPath: projectOrWorkspacePath).standardizedFileURL.path
+        let (flag, value) = xcodebuildContainerArgs(for: path)
+
+        let sgDir = URL(fileURLWithPath: symbolGraphDir).standardizedFileURL.path
+        
+        func escape(_ s: String) -> String {
+            if s.contains(" ") { return "\"\(s)\"" }
+            return s
+        }
+
+        let safeSgDir = escape(sgDir)
+        
+        let cmd = [
+            "xcodebuild",
+            "-scheme", "\"\(scheme)\"",
+            "-destination", "\"\(destination)\"",
+            "clean", "build",
+            flag, "\"\(value)\"",
+            "\"OTHER_SWIFT_FLAGS=$(inherited) -emit-symbol-graph -emit-symbol-graph-dir \(safeSgDir)\"",
+            "\"SWIFT_FLAGS=-emit-symbol-graph -emit-symbol-graph-dir \(safeSgDir)\""
+        ]
+        
+        return cmd.joined(separator: " ")
+    }
+
     private static func xcodebuildContainerArgs(for path: String) -> (String, String) {
         if path.hasSuffix(".xcworkspace") {
             return ("-workspace", path)
