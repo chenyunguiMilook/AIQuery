@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.aiq.mcp</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/aiq-mcp</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>AIQ_PROJECT_ROOT</key>
+        <string>/Users/chenyungui/Documents/vectorShop/VectorShop</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/aiq-mcp.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/aiq-mcp.stderr.log</string>
+</dict>
+</plist>
